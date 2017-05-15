@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +36,11 @@ public class ChessManager
         List<NPoint> adjMoves=null;
         Piece[][] boardArr = board.getBoard();
         boolean moveSelected=false;
-
+        Piece taken=null;
+        Piece dropPiece=null;
+        int dpbutton=-1;
+        boolean dropping=false;
+        boolean dropped=false;
 
         isGameOver = true;                //checks for gameOver
         for (int r = 0; r < 8; r++)
@@ -56,7 +61,18 @@ public class ChessManager
                     else
                         gui.setCheckColor(king2.getLocation());
                 }
-
+                if(clicked==0) {
+                    List<DropPieceButton> dropPieces = gui.getDropPieces();
+                    for (int i = 0; i < dropPieces.size(); i++) {
+                        if (dropPieces.get(i).getListener().isSelected()) {
+                            dpbutton=i;
+                            clicked = 1;
+                            dropPiece = dropPieces.get(i).getPiece();
+                            dropPieces.get(i).getListener().unselect();
+                            dropping=true;
+                        }
+                    }
+                }
                 for (int r = 0; r < 8; r++)
                     for (int c = 0; c < 8; c++) {
                         if (clicked == 0)                                                           //no tile has been selected
@@ -74,17 +90,27 @@ public class ChessManager
                         {
                             if (gui.getTiles()[r][c].getListener().isSelected())
                             {
-                                if (checkIfAvail(new NPoint(r, c), adjMoves))
+                                if(checkIfAvail(new NPoint(r, c), adjMoves))
                                 {
-                                    board.movePiece(moveFrom, new NPoint(r, c));
-                                    if (board.getBoard()[r][c] instanceof King)
+                                    taken=board.movePiece(moveFrom, new NPoint(r, c));
+                                    if (boardArr[r][c] instanceof King)
                                         castle(moveFrom, new NPoint(r, c));
                                     promotePawn(r, c);
                                     currTeam=(currTeam==1) ? 2:1;
                                     moveSelected=true;
                                 }
+                                if(dropping)// && boardArr[r][c].getTeam()==-1 && !(dropPiece.getType().equals("Pawn")&&(r==0 || r==7)))          //trying to drop, spot is empty, and pawn isnt in first or last rank
+                                {
+                                    boardArr[r][c]=dropPiece;
+                                    dropPiece.setLocation(new NPoint(r,c));
+                                    currTeam=(currTeam==1) ? 2:1;
+                                    dropped=true;
+                                    gui.removeButton(dpbutton);
+                                    System.out.println(gui.getDropPieces().size());
+                                    //TODO remove the button once used
+                                }
                                 clicked = 0;
-                                gui.updateGUI(board.getBoard());
+                                gui.updateGUI(boardArr);
                                 gui.updateTurn(currTeam);
 
                                 if (getThreat() != null) {                              //marks check
@@ -97,7 +123,9 @@ public class ChessManager
                         }
                         gui.getTiles()[r][c].getListener().unselect();
                         if(moveSelected)
-                            return "movePiece "+moveFrom.getRow()+" "+moveFrom.getCol()+" "+r+" "+c+" "+board.getBoard()[r][c].getType();
+                            return "movePiece "+moveFrom.getRow()+" "+moveFrom.getCol()+" "+r+" "+c+" "+taken.getType();
+                        if(dropped)
+                            return "dropPiece "+dropPiece.getType()+" " +r+" "+c;
                     }
             }
         }
@@ -147,6 +175,24 @@ public class ChessManager
         else                                    //by disconnect
             gui.stateVictor((myTeam==1)?2:1);
 
+    }
+
+    public void addDropPiece(String name)
+    {
+        Piece p;
+        if(name.equals("Rook"))
+            p=new Rook(myTeam,null);
+        else if(name.equals("Bishop"))
+            p=new Bishop(myTeam,null);
+        else if(name.equals("Knight"))
+            p=new Knight(myTeam,null);
+        else if(name.equals("King"))
+            p=new King(myTeam,null);
+        else if(name.equals("Queen"))
+            p=new Queen(myTeam,null);
+        else
+            p=new Pawn(myTeam,null);
+        gui.addDropPiece(p);
     }
 
     public void setMyTeam(int i)

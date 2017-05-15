@@ -22,6 +22,7 @@ public class MyServer extends Server
 
         clientsWaitingForGame = new LinkedList<Integer>();
         //games = new HashMap<Integer, TwoPlayerChess>();
+        teammate = new HashMap<Integer,Integer>();
         otherPlayer = new HashMap<Integer, Integer>();
         whiteClients = new HashSet<Integer>();
         blackClients = new HashSet<Integer>();
@@ -42,9 +43,6 @@ public class MyServer extends Server
     {
         System.out.println("Message from client " +id+ ": " + message);
 
-        //check if it is this players turn
-        int thisTeam= whiteClients.contains(id) ? 1 : 2;
-
         //parse the row and col from the message
         String[] parts = message.trim().split(" ");
         if(parts[0].equals("movePiece") && parts.length >= 5)
@@ -64,11 +62,11 @@ public class MyServer extends Server
         }
         else if(parts[0].equals("dropPiece") && parts.length>=4)
         {
-            //to be implemented for bughouse
+            send(otherPlayer.get(id), message);
         }
         else if(parts[0].equals("giveAlly"))
         {
-            send("addDropPiece "+parts[1]);
+            send(teammate.get(id),"addDropPiece "+parts[1]);
         }
         else if(parts[0].equals("gameOver"))
         {
@@ -114,7 +112,9 @@ public class MyServer extends Server
             //send message to each client informing them of their piece (X, O)
             //This message also lets the client's know that their game is ready to be played
             teammate.put(clientA, clientC);
+            teammate.put(clientC, clientA);
             teammate.put(clientB, clientD);
+            teammate.put(clientD, clientB);
 
 
             whiteClients.add(clientA);

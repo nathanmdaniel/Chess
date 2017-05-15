@@ -2,6 +2,7 @@
  * Created by Nathan on 3/3/2017.
  */
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 
@@ -11,9 +12,12 @@ public class ChessGUI
     private Piece[][] board;
     private JLabel info;
     private JLabel team;
+    private JPanel ep;
+    private List<DropPieceButton> dropPieces;
 
     public ChessGUI(Piece[][] board)
     {
+        dropPieces=new ArrayList<DropPieceButton>();
         this.board=board;
         //frame
         JFrame j=new JFrame();
@@ -45,7 +49,7 @@ public class ChessGUI
         JPanel rs=new JPanel(new BorderLayout(3,3));
         j.add(rs,BorderLayout.EAST);
             //extra piece section
-            JPanel ep= new JPanel(new GridLayout(8,2));
+            ep= new JPanel(new GridLayout(8,2));
             rs.add(ep,BorderLayout.CENTER);
             ep.setPreferredSize(new Dimension(130,550));
             /*for(int i=0;i<8;i++)
@@ -127,5 +131,26 @@ public class ChessGUI
             team.setText("Playing as White");
         else
             team.setText("Playing as Black");
+    }
+
+    public void addDropPiece(Piece p)
+    {
+        DropListener listener=new DropListener();
+        DropPieceButton j=new DropPieceButton(p, listener, new ImageIcon(p.getImageLoc()));
+        j.setBackground(new Color(205, 121, 106));
+        j.addActionListener(listener);
+        dropPieces.add(j);
+        ep.add(j);
+    }
+
+    public List<DropPieceButton> getDropPieces()
+    {
+        return dropPieces;
+    }
+    public void removeButton(int b)
+    {
+        dropPieces.remove(b);
+        ep.remove(dropPieces.get(b));
+        ep.invalidate();
     }
 }

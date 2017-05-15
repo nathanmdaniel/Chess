@@ -11,8 +11,9 @@ public class MyClient extends Client
     {
         Scanner in = new Scanner(System.in);
         System.out.println("Use localhost to connect to a server running on your computer.");
-        System.out.print("IP Address > ");
-        String ip = in.next();
+        //System.out.print("IP Address > ");
+        //String ip = in.next();
+        String ip="localhost";
 
         //System.out.print("Port > ");
         //int port = in.nextInt();
@@ -72,9 +73,13 @@ public class MyClient extends Client
             game.movePiece(from, to);
 
             String nextMove=game.getNextMove();
-            String piece=nextMove.split(" ")[5];
-            if(!piece.equals("Empty"))
-                send("giveAlly "+piece);
+            String[] response=nextMove.split(" ");
+            if(response[0].equals("movePiece"))
+            {
+                String piece=response[5];
+                if(!piece.equals("Empty"))
+                    send("giveAlly "+piece);
+            }
             send(nextMove);
         }
         else if("error".equals(parts[0]))
@@ -94,7 +99,7 @@ public class MyClient extends Client
         }
         else if("addDropPiece".equals(parts[0]))
         {
-
+            game.addDropPiece(parts[1]);
         }
         else if("gameOver".equals(parts[0]))
         {
